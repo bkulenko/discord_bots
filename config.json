@@ -1,0 +1,18 @@
+{
+    "test_voice_1": {
+        "function": "send_dm",
+        "payload": {"test": "test_msg",
+                    "random": ["random", "message"]}
+    },
+    "test_voice_2":{
+        "function": "send_channel",
+        "payload": ["{} test message with mention"],
+        "channel": "test_text"
+    },
+    "commands": {
+        "!test": {
+            "payload": ["test"],
+            "channel": "test_text_2"
+        }
+    }
+}
