@@ -13,18 +13,31 @@ client = discord.Client()
 
 
 DM_RECIPIENTS = []
+LOTTERY = []
 
 
 async def send_dm(**kwargs):
     member = kwargs.get("member")
     payload = kwargs.get("payload")
     dm_channel = await member.create_dm()
-    if member.nick not in DM_RECIPIENTS:
-        message = payload.get(member.nick)
-        DM_RECIPIENTS.append(member.nick)
-    else:
-        message = random.choice(payload.get("random"))
+    message = payload.get(member.nick)
     await dm_channel.send(message)
+
+
+async def lottery_add(**kwargs):
+    member = kwargs.get("member")
+    if member.nick not in LOTTERY:
+        LOTTERY.append(member.nick)
+
+
+async def lottery_call(**kwargs):
+    winner = random.choice(LOTTERY)
+    channel = kwargs.get("channel")
+    payload = kwargs.get("payload")
+    guild = discord.utils.get(client.guilds, name=GUILD)
+    member = discord.utils.get(guild.members, nick=winner)
+    channel = discord.utils.get(guild.channels, name=channel)
+    await channel.send(payload.format(member.mention))
 
 
 async def send_channel(**kwargs):
@@ -58,8 +71,14 @@ async def on_message(message):
     commands = message_mapping.get("commands")
     response = commands.get(message.content)
     if response:
-        await send_channel(member=message.author, payload=response["payload"],
-                           channel=response["channel"])
+        func = response.get("function")
+        if not func:
+            await send_channel(member=message.author, payload=response["payload"],
+                               channel=response["channel"])
+        else:
+            func = globals().get(func)
+            await func(member=message.author, payload=response["payload"],
+                       channel=response["channel"])
 
 
 @client.event
